@@ -1,0 +1,83 @@
+@startuml
+!includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+Person(customer, "Пользователь", "Управляет системой через приложения")
+Person(admin, "Администратор", "Обслуживает и управляет системой")
+System_Ext(customer_devices, "IoT-устройства", "Устройства отопления, камеры, освещение и другие модули")
+System_Ext(billing_gateway, "Внешний платежный сервис", "Обрабатывает платежи")
+
+Container_Boundary(api_gateway, "API Gateway") {
+    Component(api_routing, "API Routing", "Spring Cloud Gateway", "Маршрутизация запросов")
+    Component(auth_filter, "Authentication Filter", "Spring Module", "Авторизация запросов")
+}
+
+Container_Boundary(user_service, "Сервис управления пользователями") {
+    Component(user_api, "User API", "Spring Boot REST Controller", "Обработка запросов, связанных с пользователями")
+    Component(user_manager, "User Manager", "Java Service", "Регистрация, авторизация, управление ролями")
+    ComponentDb(database_users, "База данных пользователей", "PostgreSQL", "Хранение данных о пользователях")
+}
+
+Container_Boundary(billing, "Сервис управления подписками") {
+    Component(billing_api, "Billing API", "Spring Boot REST Controller", "Обработка запросов, связанных с платежами")
+    Component(subscription_manager, "Subscription Manager", "Java Service", "Управление подписками")
+    ComponentDb(database_billing, "База данных платежей", "PostgreSQL", "Хранение данных о платежах")
+}
+
+Container_Boundary(device_service, "Сервис управления устройствами") {
+    Component(device_api, "Device API", "Spring Boot REST Controller", "Обработка запросов, связанных с устройствами")
+    Component(command_handler, "Command Handler", "Java Service", "Обработка команд управления устройствами")
+    Component(state_manager, "State Manager", "Java Service", "Отслеживание и обновление состояния устройств")
+    Component(protocol_adapter, "Protocol Adapter", "Java Module", "Взаимодействие с устройствами через стандартизированные протоколы")
+    ComponentDb(database_devices, "База данных устройств", "PostgreSQL", "Хранение данных об устройствах")
+}
+
+Container_Boundary(telemetry_service, "Сервис телеметрии") {
+    Component(telemetry_api, "Telemetry API", "Spring Boot REST Controller", "Обработка запросов для получения телеметрии")
+    Component(telemetry_collector, "Telemetry Collector", "Java Service", "Сбор данных телеметрии с устройств")
+    Component(telemetry_analyzer, "Telemetry Analyzer", "Java Service", "Анализ телеметрических данных")
+    ComponentDb(database_telemetry, "База данных телеметрии", "PostgreSQL", "Хранение данных телеметрии")
+}
+
+Container_Boundary(automation_service, "Сервис сценариев пользователя") {
+    Component(automation_api, "Automation API", "Spring Boot REST Controller", "Обработка запросов для настройки сценариев")
+    Component(rule_engine, "Rule Engine", "Java Service", "Выполнение сценариев на основе триггеров")
+    Component(trigger_manager, "Trigger Manager", "Java Service", "Управление триггерами сценариев")
+    ComponentDb(database_automation, "База данных сценариев", "PostgreSQL", "Хранение данных сценариев")
+}
+
+ContainerQueue(kafka, "Kafka", "Apache Kafka", "Асинхронное взаимодействие между сервисами")
+
+Rel(customer, api_routing, "Отправляет запросы через приложения")
+Rel(api_routing, auth_filter, "Авторизует запросы")
+Rel(auth_filter, user_api, "Передает запросы, связанные с пользователями")
+Rel(auth_filter, billing_api, "Передает запросы, связанные с подписками")
+Rel(auth_filter, device_api, "Передает запросы, связанные с устройствами")
+Rel(auth_filter, telemetry_api, "Передает запросы для получения телеметрии")
+Rel(auth_filter, automation_api, "Передает запросы для настройки сценариев")
+
+Rel(user_api, user_manager, "Обрабатывает данные о пользователях")
+Rel(user_manager, database_users, "Читает и записывает данные пользователей")
+
+Rel(billing_api, subscription_manager, "Управляет подписками")
+Rel(subscription_manager, database_billing, "Читает и записывает данные платежей")
+Rel(subscription_manager, billing_gateway, "Обрабатывает платежи через внешний сервис")
+
+Rel(device_api, command_handler, "Обрабатывает команды устройств")
+Rel(command_handler, state_manager, "Получает состояние устройств")
+Rel(state_manager, database_devices, "Читает и записывает данные об устройствах")
+Rel(command_handler, protocol_adapter, "Передает команды на устройства")
+Rel(protocol_adapter, customer_devices, "Взаимодействует с устройствами через протоколы")
+
+Rel(telemetry_api, telemetry_collector, "Собирает данные телеметрии")
+Rel(telemetry_collector, telemetry_analyzer, "Передает данные для анализа")
+Rel(telemetry_collector, database_telemetry, "Читает и записывает телеметрические данные")
+
+Rel(automation_api, rule_engine, "Обрабатывает сценарии пользователей")
+Rel(rule_engine, trigger_manager, "Запускает триггеры сценариев")
+Rel(trigger_manager, database_automation, "Читает и записывает данные триггеров")
+
+Rel(state_manager, kafka, "Публикует обновления состояний устройств")
+Rel(kafka, rule_engine, "Передает данные для выполнения сценариев")
+Rel(rule_engine, kafka, "Передает команды управления устройствами")
+Rel(kafka, telemetry_collector, "Передает телеметрию для анализа")
+@enduml

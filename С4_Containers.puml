@@ -1,0 +1,70 @@
+@startuml
+!includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(customer, "Пользователь", "Пользователь системы 'Умный дом'")
+Person(admin, "Поддержка", "Служба администраторов и поддержки системы 'Умный дом'")
+
+System_Ext(customer_devices, "IoT-устройства", "Устройства отопления, камеры, освещение и другие модули")
+System_Ext(billing_gateway, "Внешний платежный сервис", "Осуществление оплаты подписки")
+
+Container_Boundary(smart_home_system, "Система 'Умный дом'") {
+
+    Container(mobile_app, "Mobile App", "iOS/Android", "Мобильное прилоежение")
+    Container(web_app, "Web App", "", "Web сайт сервиса")
+    Container(api_gateway, "API Gateway", "", "Распределение запросов между микросервисами")
+    
+    Container_Boundary(user_management, "Управление пользователями") {
+        Container(user_service, "Сервис управления пользователями", "", "Регистрация, авторизация и управление пользователями")
+        Container(biling, "Сервис управления подписками", "", "Упраление подпиской и оплатой")
+        ContainerDb(database_users, "База данных пользователей", "PostgreSQL", "Хранение данных о пользователях и их ролях")
+        ContainerDb(database_billing, "База данных платежей", "PostgreSQL", "Хранение данных о платежах")
+    }
+    
+    Container_Boundary(device_management, "Управление устройствами") {
+        Container(device_service, "Сервис управления устройствами", "", "Регистрация, управление и мониторинг IoT-устройств")
+        ContainerDb(database_devices, "База данных устройств", "PostgreSQL", "Хранение данных об устройствах")
+    }
+    
+    Container_Boundary(telemetry, "Телеметрия и мониторинг") {
+        Container(telemetry_service, "Сервис телеметрии", "", "Сбор и анализ данных устройств")
+        ContainerDb(database_telemetry, "База данных телеметрии", "PostgreSQL", "Хранение данных телеметрии")
+    }
+    
+    Container_Boundary(automation, "Сценарии пользователя") {
+        Container(automation_service, "Сервис сценариев пользователя", "", "Автоматизация и настройка триггеров для устройств")
+        ContainerDb(database_automation, "База данных сценариев", "PostgreSQL", "Хранение данных сценариев")
+    }
+
+    ContainerQueue(kafka, "Kafka", "Apache Kafka", "Асинхронное взаимодействие между сервисами")
+
+}
+
+Rel(customer,mobile_app, "Управляет системой с мобильного приложения")
+Rel(customer,web_app, "Управляет системой с сайта")
+Rel(admin, web_app, "Использует web сайт с режимом администратора")
+
+
+Rel(mobile_app, api_gateway, "Отправляет запросы через API")
+Rel(web_app, api_gateway, "Отправляет запросы через API")
+
+Rel(api_gateway, user_service, "Направляет запросы, связанные с пользователями")
+Rel(api_gateway, device_service, "Направляет запросы, связанные с устройствами")
+Rel(api_gateway, telemetry_service, "Направляет запросы для получения телеметрии")
+Rel(api_gateway, automation_service, "Направляет запросы для настройки сценариев")
+
+Rel(device_service, customer_devices, "Обеспечивает связь с устройствами через стандартизированные протоколы")
+Rel(customer_devices, telemetry_service, "Отправляют телеметрию в сервис телеметрии")
+Rel(telemetry_service, kafka, "Отправляет телеметрию в Kafka")
+Rel(kafka, automation_service, "Передает данные для выполнения сценариев")
+Rel(automation_service, kafka, "Инициирует действия на устройствах")
+Rel(device_management, kafka, "Отправка данных о состоянии устройств")
+
+Rel(user_service, database_users, "Читает и записывает данные пользователей")
+Rel(biling, database_billing, "Читает и записывает данные о платежах")
+Rel(device_service, database_devices, "Читает и записывает данные устройств")
+Rel(automation_service, database_automation, "Читает и записывает данные сценариев")
+Rel(telemetry_service, database_telemetry, "Читает и записывает данные телеметрии")
+
+Rel(biling, billing_gateway, "Осуществление оплаты подписки")
+
+@enduml

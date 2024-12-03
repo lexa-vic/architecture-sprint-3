@@ -1,0 +1,25 @@
+@startuml
+!includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+Container_Boundary(device_service, "Сервис управления устройствами") {
+    Component(device_api, "API управления устройствами", "Spring Boot REST Controller", "Обработка внешних запросов для управления устройствами")
+    Component(command_handler, "Обработчик команд", "Java Service", "Обрабатывает команды управления устройствами")
+    Component(state_manager, "Менеджер состояния устройств", "Java Service", "Отслеживает текущее состояние устройств и обновляет базу данных")
+    Component(protocol_adapter, "Адаптер протоколов", "Java Module", "Обеспечивает взаимодействие с устройствами через стандартизированные протоколы")
+    ComponentDb(device_database, "База данных устройств", "PostgreSQL", "Хранение данных об устройствах")
+}
+
+Person(customer, "Пользователь", "Управляет устройствами через приложения")
+System_Ext(customer_devices, "IoT-устройства", "Устройства отопления, камеры, освещение и другие модули")
+ContainerQueue(kafka, "Kafka", "Apache Kafka", "Асинхронное взаимодействие между сервисами")
+
+Rel(customer, device_api, "Отправляет запросы на управление устройствами")
+Rel(device_api, command_handler, "Передает команды на выполнение")
+Rel(command_handler, state_manager, "Запрашивает текущее состояние устройства")
+Rel(state_manager, device_database, "Читает и записывает данные состояния устройств")
+Rel(command_handler, protocol_adapter, "Отправляет команды на устройства")
+Rel(protocol_adapter, customer_devices, "Взаимодействует с устройствами через стандартизированные протоколы")
+Rel(customer_devices, state_manager, "Передают состояние устройства через телеметрию")
+Rel(state_manager, kafka, "Публикует обновления состояния в Kafka")
+
+@enduml
