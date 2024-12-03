@@ -1,0 +1,111 @@
+@startuml
+
+' Пользователь
+entity "Пользователь (User)" as User {
+    * id : UUID
+    --
+    name : String
+    email : String
+    password : String
+    created_at : Date
+}
+
+' Дом
+entity "Дом (House)" as House {
+    * id : UUID
+    --
+    user_id : UUID
+    address : String
+    name : String
+    created_at : Date
+}
+
+' Устройство
+entity "Устройство (Device)" as Device {
+    * id : UUID
+    --
+    type_id : UUID
+    house_id : UUID
+    serial_number : String
+    status : String
+    last_active : Date
+}
+
+' Тип устройства
+entity "Тип устройства (DeviceType)" as DeviceType {
+    * id : UUID
+    --
+    name : String
+    protocol : String
+}
+
+' Модуль
+entity "Модуль (Module)" as Module {
+    * id : UUID
+    --
+    name : String
+    description : String
+}
+
+' Телеметрия
+entity "Телеметрия (TelemetryData)" as TelemetryData {
+    * id : UUID
+    --
+    device_id : UUID
+    timestamp : DateTime
+    data : String
+}
+
+' Подписка
+entity "Подписка (Subscription)" as Subscription {
+    * id : UUID
+    --
+    user_id : UUID
+    module_id : UUID
+    status : String
+    start_date : Date
+    end_date : Date
+}
+
+' Способ оплаты
+entity "Способ оплаты (PaymentMethod)" as PaymentMethod {
+    * id : UUID
+    --
+    user_id : UUID
+    type : String
+    details : String
+}
+
+' Сценарий
+entity "Сценарий (Scenario)" as Scenario {
+    * id : UUID
+    --
+    user_id : UUID
+    name : String
+    trigger : String
+    action : String
+}
+
+' Действие в сценарии
+entity "Действие в сценарии (ScenarioAction)" as ScenarioAction {
+    * id : UUID
+    --
+    scenario_id : UUID
+    device_id : UUID
+    action : String
+}
+
+' Связи между сущностями
+User ||--o{ House : "владеет"
+House ||--o{ Device : "содержит"
+Device ||--o{ TelemetryData : "генерирует"
+DeviceType ||--o{ Device : "определяет тип"
+Module ||--o{ Device : "включает"
+User ||--o{ Subscription : "имеет подписку"
+Subscription }o--|| Module : "подписан на"
+User ||--o{ PaymentMethod : "имеет способ оплаты"
+User ||--o{ Scenario : "создаёт сценарии"
+Scenario ||--o{ ScenarioAction : "содержит действия"
+ScenarioAction }o--|| Device : "управляет"
+
+@enduml

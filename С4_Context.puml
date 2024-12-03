@@ -1,0 +1,18 @@
+@startuml
+!includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+Person(customer, "Пользователь", "Пользователь системы 'Умный дом'")
+Person(admin, "Поддержка", "Служба администраторов и поддержки системы 'Умный дом'")
+
+System(smart_home, "Система 'Умный дом'", "Система управления и мониторинга умными устройствами")
+
+System_Ext(customer_devices, "IoT-устройства", "Устройства отопления, камеры, освещение и другие модули")
+
+Rel(customer, smart_home, "Добавляет устройства в систему и управляет ими")
+Rel(customer, smart_home, "Настраивает сценарии автоматизации")
+Rel(admin, smart_home, "Запрос данных системы пользователя для помощи")
+Rel(smart_home, customer_devices, "Обеспечивает связь с устройствами через стандартизированные протоколы")
+Rel(smart_home, customer_devices, "Управляет устройствами")
+Rel(customer_devices,smart_home, "Получает телеметрию от устройств")
+
+@enduml

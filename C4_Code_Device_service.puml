@@ -1,0 +1,60 @@
+@startuml
+title Device Service
+!includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+
+class DeviceController {
+    + createDevice()
+    + getDevice()
+    + updateDevice()
+    + deleteDevice()
+    + sendCommand()
+}
+
+class CommandService {
+    + processCommand()
+    + validateCommand()
+}
+
+class CommandQueue {
+    + enqueueCommand()
+    + dequeueCommand()
+}
+
+class DeviceState {
+    + getState()
+    + setState()
+    + updateState()
+}
+
+class StateRepository {
+    + saveState()
+    + loadState()
+}
+
+class ProtocolHandler {
+    + sendCommandToDevice()
+    + receiveResponseFromDevice()
+}
+
+class ProtocolTranslator {
+    + translateToProtocol()
+    + translateFromProtocol()
+}
+
+device_api -down-> DeviceController
+command_handler -right-> CommandService
+command_handler -right-> CommandQueue
+state_manager -down-> DeviceState
+state_manager -down-> StateRepository
+protocol_adapter -down-> ProtocolHandler
+protocol_adapter -down-> ProtocolTranslator
+
+device_api --> command_handler : "Обрабатывает команды устройств"
+command_handler --> state_manager : "Получает текущее состояние устройства"
+state_manager --> device_database : "Читает и записывает данные об устройствах"
+command_handler --> protocol_adapter : "Передает команды устройствам через протоколы"
+protocol_adapter --> device_database : "Сохраняет данные протокола"
+protocol_adapter --> customer_devices : "Взаимодействует с устройствами через стандартизированные протоколы"
+
+@enduml
